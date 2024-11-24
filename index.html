@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>出退勤時間記録</title>
+    <title>　🐰こうさぎクラブ出退勤時間記録🐰</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #FEE3D7;
+            background-color: #CEE6C1;
         }
         .control-group {
             display: flex;
@@ -65,8 +65,10 @@
             width: 100%;
             overflow-x: auto;
             margin-top: 10px;
-            max-height: calc(100vh - 150px);
-        }
+    max-height: 70vh; /* ビューポートの80%の高さに設定 */
+    overflow-y: auto; /* 高さを超える内容にスクロールを追加 */
+   position: relative; /* 追加 */
+}
         table {
             border-collapse: collapse;
             width: 100%;
@@ -86,25 +88,37 @@
             position: sticky;
             left: 0;
             background-color: #F0F0F0;
-            z-index: 3;
+            z-index: 2;
         }
         th:first-child, /* 追加 */
         td:first-child { /* 追加 */
             background-color: #F0F0F0 !important; /* 追加 */
         }
-        th.colspan-2,
-        th.colspan-2 + th {
-            position: sticky;
-            top: 0;
-            background-color: #F0F0F0;
-            z-index: 2;
-        }
-        th.sticky-second-row {
-            position: sticky;
-            top: 24px;
-            background-color: #F0F0F0; /* 薄いグレー */
-            z-index: 1;
-        }
+        th.colspan-2 {
+    text-align: center;
+}
+
+th.sticky, td.sticky {
+    position: sticky;
+    top: 0;
+    background-color: #F0F0F0;
+    z-index: 3;
+}
+thead th {
+    position: sticky;
+    top: 0; /* 上部に固定 */
+    background-color: #F0F0F0;
+    z-index: 2; /* 他の要素よりも上に表示 */
+}
+th.sticky-second-row {
+    position: sticky;
+    top: 24px; /* 二行目のために適切な値に調整 */
+    background-color: #F0F0F0;
+}
+
+th.sticky {
+    z-index: 3;
+}
         .button-group button {
             font-size: 1.2em;
             padding: 10px 20px;
@@ -113,15 +127,25 @@
         .selected {
             background-color: #B0C4DE !important;
         }
+/* 今日以降の日付のグレー化 */
+.past-date {
+    background-color: #d3d3d3 !important; /* グレーの背景色 */
+    color: #a0a0a0; /* テキスト色もグレーにする場合 */
+}
+
+/* 名前列の上書き問題を解決 */
+table td.past-date {
+    background-color: #d3d3d3 !important; /* グレーの背景色 */
+    color: #a0a0a0; /* テキスト色もグレーにする場合 */
+}
     </style>
 </head>
 <body>
-    <h1>出退勤時間記録</h1>
+    <h1>　🐰こうさぎクラブ出退勤時間記録🐰</h1>
     <div class="container">
         <div class="controls">
             <div class="button-group">
                 <button id="bulk-time-button">時刻入力</button>
-                <button id="bulk-absent-button">休み</button>
                 <button id="bulk-clear-button">クリア</button>
             </div>
             <div class="year-and-months">
@@ -155,13 +179,18 @@
         </div>
         <div class="table-container">
             <table id="attendance-table">
-                <thead>
-                    <tr>
-                        <th rowspan="2" class="sticky">日付</th>
-                    </tr>
-                    <tr class="sticky-second-row"></tr>
-                </thead>
-                <tbody></tbody>
+<thead>
+    <tr>
+        <th class="sticky">日付</th>
+        <th class="sticky colspan-2" colspan="2">出勤</th>
+        <th class="sticky colspan-2" colspan="2">退勤</th>
+    </tr>
+    <tr class="sticky-second-row">
+    </tr>
+</thead>
+<tbody>
+    <!-- 各日にちの行 -->
+</tbody>
             </table>
         </div>
         <button id="export-button" class="export-button">エクセルに出力</button>
@@ -174,13 +203,13 @@
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyDPUoZSZCBmJi7yMtIp6apBEfEJqIJWZRY",
-            authDomain: "kousagi-2e126.firebaseapp.com",
-            projectId: "kousagi-2e126",
-            storageBucket: "kousagi-2e126.appspot.com",
-            messagingSenderId: "379985487644",
-            appId: "1:379985487644:web:e8ca61a2fb7cbc2fc37cd9",
-            measurementId: "G-DB225BE3JD"
+  apiKey: "AIzaSyBn1Y7OIHk-E4aBNeo551XJp0ce6DTVQ5c",
+  authDomain: "kousagi-917ae.firebaseapp.com",
+  projectId: "kousagi-917ae",
+  storageBucket: "kousagi-917ae.firebasestorage.app",
+  messagingSenderId: "510109871903",
+  appId: "1:510109871903:web:d51eb00c40db65530bca2a",
+  measurementId: "G-XFY7YWKYT3"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -256,70 +285,102 @@
             let names = await loadNamesFromFirestore();
             let selectedCells = [];
 
-            const updateTableHeader = () => {
-                const headerRow = attendanceTable.previousElementSibling.querySelector('tr');
-                const dateRow = headerRow.nextElementSibling;
-                headerRow.innerHTML = '<th rowspan="2" class="sticky">日付</th>';
-                dateRow.innerHTML = '';
+const updateTableHeader = () => {
+    const headerRow = attendanceTable.previousElementSibling.querySelector('tr');
+    headerRow.innerHTML = '<th class="sticky">日付</th>';
 
-                names.forEach((name) => {
-                    const th = document.createElement('th');
-                    th.textContent = name;
-                    th.classList.add('colspan-2');
-                    th.colSpan = 2;
-                    headerRow.appendChild(th);
-                    dateRow.innerHTML += '<th class="sticky-second-row">出勤</th><th class="sticky-second-row">退勤</th>';
-                });
-            };
+    names.forEach((name) => {
+        const th = document.createElement('th');
+        th.textContent = name;
+        headerRow.appendChild(th);
+    });
+};
 
-            const updateTableBody = async () => {
-                attendanceTable.innerHTML = '';
-                const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-                const data = await loadDataFromFirestore();
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const row = document.createElement('tr');
-                    const dateCell = document.createElement('td');
-                    dateCell.textContent = `${currentMonth}月${day}日`;
-                    row.appendChild(dateCell);
-                    names.forEach((name) => {
-                        const checkInCell = document.createElement('td');
-                        checkInCell.dataset.name = name;
-                        checkInCell.dataset.date = `${currentMonth}/${day}`;
-                        checkInCell.dataset.year = currentYear;
-                        checkInCell.dataset.type = 'checkIn';
-                        checkInCell.addEventListener('click', () => selectCell(checkInCell));
-                        const fieldName = `${currentYear}_${currentMonth}-${day}_checkIn`;
-                        checkInCell.textContent = data[name] && data[name][fieldName] ? data[name][fieldName] : '';
-                        row.appendChild(checkInCell);
+const updateTableBody = async () => {
+    attendanceTable.innerHTML = '';
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const data = await loadDataFromFirestore();
+    const todayStr = `${currentYear}/${currentMonth}/${new Date().getDate()}`;
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentMonth}月${day}日`;
+        const dateISO = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isPastDate = new Date(dateISO) < new Date(todayStr);
 
-                        const checkOutCell = document.createElement('td');
-                        checkOutCell.dataset.name = name;
-                        checkOutCell.dataset.date = `${currentMonth}/${day}`;
-                        checkOutCell.dataset.year = currentYear;
-                        checkOutCell.dataset.type = 'checkOut';
-                        checkOutCell.addEventListener('click', () => selectCell(checkOutCell));
-                        const fieldNameOut = `${currentYear}_${currentMonth}-${day}_checkOut`;
-                        checkOutCell.textContent = data[name] && data[name][fieldNameOut] ? data[name][fieldNameOut] : '';
-                        row.appendChild(checkOutCell);
-                    });
-                    attendanceTable.appendChild(row);
-                }
-            };
+        // 出勤行
+        const checkInRow = document.createElement('tr');
+        if (isPastDate) checkInRow.classList.add('past-date');
+
+        const checkInDateCell = document.createElement('td');
+        checkInDateCell.textContent = `${dateStr} [出]`; // 出勤と表示
+        checkInRow.appendChild(checkInDateCell);
+
+        names.forEach((name) => {
+            const checkInCell = document.createElement('td');
+            checkInCell.dataset.name = name;
+            checkInCell.dataset.date = `${currentMonth}/${day}`;
+            checkInCell.dataset.year = currentYear;
+            checkInCell.dataset.type = 'checkIn';
+            checkInCell.addEventListener('click', () => selectCell(checkInCell));
+            const fieldName = `${currentYear}_${currentMonth}-${day}_checkIn`;
+            checkInCell.textContent = data[name] && data[name][fieldName] ? data[name][fieldName] : '';
+            if (isPastDate) checkInCell.classList.add('past-date');
+            checkInRow.appendChild(checkInCell);
+        });
+
+        attendanceTable.appendChild(checkInRow);
+
+        // 退勤行
+        const checkOutRow = document.createElement('tr');
+        if (isPastDate) checkOutRow.classList.add('past-date');
+
+        const checkOutDateCell = document.createElement('td');
+        checkOutDateCell.textContent = `${dateStr} [退]`; // 退勤と表示
+        checkOutRow.appendChild(checkOutDateCell);
+
+        names.forEach((name) => {
+            const checkOutCell = document.createElement('td');
+            checkOutCell.dataset.name = name;
+            checkOutCell.dataset.date = `${currentMonth}/${day}`;
+            checkOutCell.dataset.year = currentYear;
+            checkOutCell.dataset.type = 'checkOut';
+            checkOutCell.addEventListener('click', () => selectCell(checkOutCell));
+            const fieldName = `${currentYear}_${currentMonth}-${day}_checkOut`;
+            checkOutCell.textContent = data[name] && data[name][fieldName] ? data[name][fieldName] : '';
+            if (isPastDate) checkOutCell.classList.add('past-date');
+            checkOutRow.appendChild(checkOutCell);
+        });
+
+        attendanceTable.appendChild(checkOutRow);
+    }
+};
 
             const updateTable = async () => {
                 updateTableHeader();
                 await updateTableBody();
             };
 
-            const selectCell = (cell) => {
-                if (cell.classList.contains('selected')) {
-                    cell.classList.remove('selected');
-                    selectedCells = selectedCells.filter(selectedCell => selectedCell !== cell);
-                } else {
-                    cell.classList.add('selected');
-                    selectedCells.push(cell);
-                }
-            };
+const selectCell = (cell) => {
+    const today = new Date();
+    const cellDate = new Date(`${cell.dataset.year}-${cell.dataset.date}`);
+    
+    if (cellDate.toDateString() === today.toDateString()) {
+        // Clear all previous selections
+        attendanceTable.querySelectorAll('td').forEach(selectedCell => {
+            selectedCell.classList.remove('selected');
+        });
+        selectedCells = [];
+
+        // Highlight the clicked cell
+        cell.classList.add('selected');
+        selectedCells.push(cell);
+    } else {
+        // Just do nothing if the cell is not for today
+        cell.classList.remove('selected');
+    }
+};
+
+
 
             const bulkUpdateCells = (value) => {
                 selectedCells.forEach(cell => {
@@ -331,38 +392,47 @@
             };
 
             const exportToExcel = async () => {
-                const wb = utils.book_new();
-                const wsData = [['日付']];
+    const wb = utils.book_new();
+    const wsData = [['日付']];
 
-                // 名前の分だけ出勤と退勤のカラムを作る
-                names.forEach(name => {
-                    wsData[0].push(name, '');
-                });
+// 名前ごとに1つの列を作る（出勤と退勤をまとめる）
+names.forEach((name, index) => {
+    wsData[0].push(name);  // 1つの列だけ作成
 
-                // 2行目に「出勤」と「退勤」を追加
-                const secondRow = [''];
-                names.forEach(() => {
-                    secondRow.push('出勤', '退勤');
-                });
-                wsData.push(secondRow);
+});
 
-                const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-                const data = await loadDataFromFirestore();
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const row = [`${currentYear}/${currentMonth}/${day}`];
-                    names.forEach(name => {
-                        const fieldNameIn = `${currentYear}_${currentMonth}-${day}_checkIn`;
-                        const fieldNameOut = `${currentYear}_${currentMonth}-${day}_checkOut`;
-                        row.push(data[name] && data[name][fieldNameIn] ? data[name][fieldNameIn] : '');
-                        row.push(data[name] && data[name][fieldNameOut] ? data[name][fieldNameOut] : '');
-                    });
-                    wsData.push(row);
-                }
+    // テーブルの行をループしてデータを作成
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const data = await loadDataFromFirestore();
 
-                const ws = utils.aoa_to_sheet(wsData);
-                utils.book_append_sheet(wb, ws, "出退勤");
-                writeFile(wb, "attendance.xlsx");
-            };
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentMonth}月${day}日`;
+
+        // 出勤行のデータ
+        const checkInRow = [`${dateStr} [出]`];
+        names.forEach(name => {
+            const checkInField = `${currentYear}_${currentMonth}-${day}_checkIn`;
+            checkInRow.push(data[name] && data[name][checkInField] ? data[name][checkInField] : '');
+        });
+
+        // 退勤行のデータ
+        const checkOutRow = [`${dateStr} [退]`];
+        names.forEach(name => {
+            const checkOutField = `${currentYear}_${currentMonth}-${day}_checkOut`;
+            checkOutRow.push(data[name] && data[name][checkOutField] ? data[name][checkOutField] : '');
+        });
+
+        // 出勤と退勤のデータをそれぞれ行に追加
+        wsData.push(checkInRow, checkOutRow);
+    }
+
+    const ws = utils.aoa_to_sheet(wsData);
+    utils.book_append_sheet(wb, ws, 'Attendance');
+    writeFile(wb, `出退勤表_${currentYear}年${currentMonth}月.xlsx`);
+};
+
+exportButton.addEventListener('click', exportToExcel);
+
 
             yearSelect.value = currentYear;
             monthLinks[currentMonth - 1].classList.add('active');
@@ -408,10 +478,6 @@
                 bulkUpdateCells(time);
             });
 
-            bulkAbsentButton.addEventListener('click', () => {
-                bulkUpdateCells('休');
-            });
-
             bulkClearButton.addEventListener('click', () => {
                 bulkUpdateCells('');
             });
@@ -420,6 +486,8 @@
 
             await updateTable();
         });
+
+
     </script>
 </body>
 </html>
